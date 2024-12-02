@@ -1,27 +1,27 @@
-version: "3.8"
+
 services:
   auth:
+    env_file:
+        - path: ./.env
+          required: true
     image: postgres
     build: .
     container_name: auth
     restart: always
     ports:
       - "${AUTH_DB_PORT}:5432"
-    env_file:
-      - ./.env
     environment:
       POSTGRES_USER: ${AUTH_DB_USERNAME}
       POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
       POSTGRES_DB: ${AUTH_DB_DATABASE}
     volumes:
-      - local_pgdata:/var/lib/postgresql/auth
+      - auth_pgdata:/var/lib/postgresql/auth
       #- ./scripts/:/docker-entrypoint-initdb.d
     networks:
         - default
 
 volumes:
-  local_pgdata:
-  pgadmin-data:
+  auth_pgdata:
 
 networks:
   default:
