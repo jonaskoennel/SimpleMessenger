@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"SimpleMessenger/m/initializers"
-	"SimpleMessenger/m/models"
+	"authentication/auth/initializers"
+	"authentication/auth/models"
 	"fmt"
 	"net/http"
 	"os"

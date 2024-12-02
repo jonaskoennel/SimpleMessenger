@@ -1,9 +1,9 @@
 package main
 
 import (
-	"SimpleMessenger/m/controllers"
-	"SimpleMessenger/m/initializers"
-	"SimpleMessenger/m/middleware"
+	"authentication/auth/controllers"
+	"authentication/auth/initializers"
+	"authentication/auth/middleware"
 
 	"github.com/gin-gonic/gin"
 )

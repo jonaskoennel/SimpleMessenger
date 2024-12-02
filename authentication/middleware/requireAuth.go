@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"SimpleMessenger/m/initializers"
-	"SimpleMessenger/m/models"
+	"authentication/auth/initializers"
+	"authentication/auth/models"
 	"fmt"
 	"log"
 	"net/http"

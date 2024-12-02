@@ -1,7 +1,7 @@
 package initializers
 
 import (
-	"SimpleMessenger/m/models"
+	"authentication/auth/models"
 )
 
 func SyncDatabase() {
