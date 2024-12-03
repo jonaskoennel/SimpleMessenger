@@ -103,6 +103,6 @@ func Validate(c *gin.Context) {
 
 	fmt.Println(user.(models.User).Email)
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Im logged in",
+		"sub": user.(models.User).ID,
 	})
 }

@@ -6,7 +6,7 @@ services:
           required: true
     image: postgres
     build: .
-    container_name: auth
+    container_name: auth_db
     restart: always
     ports:
       - "${AUTH_DB_PORT}:5432"
@@ -19,9 +19,29 @@ services:
       #- ./scripts/:/docker-entrypoint-initdb.d
     networks:
         - default
+  messages:
+    env_file:
+        - path: ./.env
+          required: true
+    image: postgres
+    build: .
+    container_name: messages_db
+    restart: always
+    ports:
+      - "${MESSAGES_DB_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${MESSAGES_DB_USERNAME}
+      POSTGRES_PASSWORD: ${MESSAGES_DB_PASSWORD}
+      POSTGRES_DB: ${MESSAGES_DB_DATABASE}
+    volumes:
+      - messages_pgdata:/var/lib/postgresql/messages
+      #- ./scripts/:/docker-entrypoint-initdb.d
+    networks:
+        - default
 
 volumes:
   auth_pgdata:
+  messages_pgdata:
 
 networks:
   default:
