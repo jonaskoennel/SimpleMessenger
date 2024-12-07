@@ -23,13 +23,13 @@ window.onload = function () {
         if (!msg.value) {
             return false;
         }
-        conn.send(msg.value);
+        conn.send(`{"id":1,"chatId":1,"userId":1,"text":"${msg.value}"}`);
         msg.value = "";
         return false;
     };
 
     if (window["WebSocket"]) {
-        conn = new WebSocket("ws://" + document.location.host + "/ws");
+        conn = new WebSocket("ws://localhost:8090/ws");
         conn.onclose = function (evt) {
             var item = document.createElement("div");
             item.innerHTML = "<b>Connection closed.</b>";
@@ -38,9 +38,14 @@ window.onload = function () {
         conn.onmessage = function (evt) {
             var messages = evt.data.split('\n');
             for (var i = 0; i < messages.length; i++) {
-                var item = document.createElement("div");
-                item.innerText = messages[i];
-                appendLog(item);
+                if(messages[i] != "") {
+                    console.log("message: " + messages[i])
+                    var obj = JSON.parse(messages[i])
+                    console.log("obj: " + obj.text)
+                    var item = document.createElement("div");
+                    item.innerText = obj.text;
+                    appendLog(item);
+                } 
             }
         };
     } else {

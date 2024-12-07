@@ -5,7 +5,7 @@ import (
 	"log"
 	"messages/messages/controllers"
 	"messages/messages/initializers"
-	"messages/messages/middleware"
+	"messages/messages/websocket"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -34,8 +34,21 @@ func init() {
 
 func main() {
 	r := gin.Default()
-	r.GET("/conversations", middleware.Validate, controllers.GetConversations)
-	r.Run("localhost:8090")
+	flag.Parse()
+	log.SetFlags(0)
+	hub := websocket.NewHub()
+	go hub.Run()
+	r.LoadHTMLFiles("home.html")
+	//r.Use(middleware.Validate())
+	r.GET("/ws", func(c *gin.Context) {
+		websocket.ServeWs(hub, c)
+	})
+	r.GET("/", websocket.ServeHome)
+	r.GET("/conversations", controllers.GetChat)
+	r.GET("/chats/messages/:id", controllers.GetAllMessages)
+	r.GET("/chats", controllers.GetUserChats)
+
+	log.Fatal(r.Run(*addr))
 	/*
 		r := gin.Default()
 		r.GET("/loadAllMessages", func(c *gin.Context) {
