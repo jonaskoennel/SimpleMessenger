@@ -7,6 +7,7 @@ import (
 	"log"
 	"messages/messages/models"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -49,6 +50,10 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	send chan models.MessageAPI
+
+	mu sync.Mutex
+
+	ID uint
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -81,7 +86,7 @@ func (c *Client) readPump() {
 		myMessage := string(message)
 		fmt.Println(myMessage)
 
-		c.hub.broadcast <- ret
+		c.hub.send <- ret
 	}
 }
 
@@ -135,6 +140,7 @@ func (c *Client) writePump() {
 	}
 }
 
+/*
 // serveWs handles websocket requests from the peer.
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
@@ -143,6 +149,7 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
+
 	client := &Client{hub: hub, conn: conn, send: make(chan models.MessageAPI, 256)}
 	client.hub.register <- client
 
@@ -151,6 +158,7 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	go client.writePump()
 	go client.readPump()
 }
+*/
 
 func ServeWs(hub *Hub, ctx *gin.Context) {
 	w, r := ctx.Writer, ctx.Request
@@ -159,7 +167,10 @@ func ServeWs(hub *Hub, ctx *gin.Context) {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan models.MessageAPI, 256)}
+	userid := ctx.MustGet("userId").(uint)
+
+	fmt.Printf("UserId in Websocket-Client: %d\n", 1)
+	client := &Client{hub: hub, conn: conn, ID: userid, send: make(chan models.MessageAPI, 256)}
 	client.hub.register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in

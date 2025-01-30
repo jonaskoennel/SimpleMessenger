@@ -2,9 +2,12 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"messages/messages/controllers"
 	"messages/messages/initializers"
+	"messages/messages/middleware"
+	"messages/messages/utils"
 	"messages/messages/websocket"
 	"net/http"
 
@@ -33,20 +36,28 @@ func init() {
 }
 
 func main() {
+	test, err := utils.GetChatParticipants(1)
+	if err != nil {
+		fmt.Println("Error")
+	}
+	fmt.Println(test)
 	r := gin.Default()
 	flag.Parse()
 	log.SetFlags(0)
 	hub := websocket.NewHub()
 	go hub.Run()
 	r.LoadHTMLFiles("home.html")
-	//r.Use(middleware.Validate())
+	r.Use(middleware.CORSMiddleware())
+	r.Use(middleware.Validate())
 	r.GET("/ws", func(c *gin.Context) {
 		websocket.ServeWs(hub, c)
 	})
 	r.GET("/", websocket.ServeHome)
-	r.GET("/conversations", controllers.GetChat)
-	r.GET("/chats/messages/:id", controllers.GetAllMessages)
+	r.POST("/messages/create", controllers.CreateMessage)
+	r.GET("/messages/:chat_id", controllers.GetAllMessages)
 	r.GET("/chats", controllers.GetUserChats)
+	r.GET("/chats/user", controllers.LoadUserChats)
+	r.GET("/chats/preview", controllers.GetChatPreview)
 
 	log.Fatal(r.Run(*addr))
 	/*

@@ -4,7 +4,6 @@ import (
 	"authentication/auth/initializers"
 	"authentication/auth/models"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -32,7 +31,8 @@ func RequireAuth(c *gin.Context) {
 		return []byte(os.Getenv("AUTH_JWT_SECRET")), nil
 	})
 	if err != nil {
-		log.Fatal(err)
+		c.AbortWithStatus(http.StatusUnauthorized)
+		//log.Fatal(err)
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {

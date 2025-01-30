@@ -31,5 +31,8 @@ func main() {
 	r.GET("/register", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "register.html", gin.H{})
 	})
+	r.GET("/chats", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "chats.html", gin.H{})
+	})
 	log.Fatal(r.Run(*addr))
 }

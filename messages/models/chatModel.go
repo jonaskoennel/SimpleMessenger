@@ -6,16 +6,43 @@ import (
 
 type Chat struct {
 	gorm.Model
-	ID       uint      `gorm:"primaryKey" json:"id" uri:"chatid" binding:"required"`
-	Name     string    `json:"name"`
-	UsersID  uint64    `gorm:"index" json:"userId"`
-	Users    Users     `json:"users"`
-	Messages []Message `json:"messages"`
+	ID           uint `gorm:"primaryKey"`
+	Name         string
+	Participants []ChatParticipants
+	Messages     []Message
 }
 
-type Users struct {
+/*
+	type User struct {
+		gorm.Model
+		ID       uint    `gorm:"primaryKey" json:"id"`
+		Username string  `json:"username"`
+		Chats    []*Chat `gorm:"many2many:chat_participants;"`
+	}
+*/
+type ChatParticipants struct {
 	gorm.Model
-	ID    uint `gorm:"primaryKey" json:"id"`
-	User1 uint `json:"user1"`
-	User2 uint `json:"user2"`
+	ChatID uint
+	UserID uint
 }
+
+type ChatPreview struct {
+	ID           uint   `gorm:"primaryKey" `
+	Name         string `json:"name"`
+	Participants []ParticipantPreview
+}
+
+type ParticipantPreview struct {
+	ChatID uint
+	UserID uint
+}
+
+/*
+type ChatParticipants struct {
+	gorm.Model
+	ChatId uint
+	Chat   Chat
+	UserID uint
+	User   UserProfile
+}
+*/

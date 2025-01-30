@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +46,7 @@ func Validate() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 		type Token struct {
-			Sub int `json:"sub"`
+			Sub uint `json:"sub"`
 		}
 		var token Token
 		url := "http://localhost:8080/validate"
@@ -63,6 +64,7 @@ func Validate() gin.HandlerFunc {
 		if err != nil {
 			c.AbortWithStatus(http.StatusBadRequest)
 		}
+		fmt.Printf("Validation Middleware got UserId:%d", token.Sub)
 		c.Set("userId", token.Sub)
 		c.Next()
 	}

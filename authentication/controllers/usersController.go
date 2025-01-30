@@ -16,6 +16,7 @@ import (
 func Signup(c *gin.Context) {
 	var body struct {
 		Email    string
+		Username string
 		Password string
 	}
 
@@ -34,7 +35,7 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	user := models.User{Email: body.Email, Password: string(hash)}
+	user := models.User{Email: body.Email, Username: body.Username, Password: string(hash)}
 	result := initializers.DB.Create(&user)
 
 	if result.Error != nil {
@@ -43,7 +44,6 @@ func Signup(c *gin.Context) {
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{})
 }
 
@@ -52,15 +52,26 @@ func Login(c *gin.Context) {
 		Email    string
 		Password string
 	}
-
+	fmt.Println(c.Cookie("Authorization"))
 	if c.Bind(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read body",
 		})
 		return
 	}
+	var ret []byte
+	c.Request.Body.Read(ret)
+	fmt.Printf("Request Body: %s\n", string(ret))
+
+	fmt.Printf("Login: {Username: %s, Password: %s}\n", body.Email, body.Password)
 	var user models.User
-	initializers.DB.First(&user, "email = ?", body.Email)
+	err := initializers.DB.First(&user, "email = ?", body.Email).Error
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid email or password",
+		})
+		return
+	}
 
 	if user.ID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -69,7 +80,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -93,8 +104,10 @@ func Login(c *gin.Context) {
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
-	c.JSON(http.StatusOK, gin.H{})
+	c.SetCookie("Authorization", tokenString, 3600*24*30, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"Cookie": tokenString,
+	})
 
 }
 
@@ -105,4 +118,34 @@ func Validate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"sub": user.(models.User).ID,
 	})
+}
+
+func GetUserByUsername(c *gin.Context) {
+	var body struct {
+		Username string
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	fmt.Printf("Username: %s\n", body.Username)
+	var ret struct {
+		ID uint
+	}
+	err := initializers.DB.Model(&models.User{}).Where("username LIKE = ?", body.Username).First(&ret).Error
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to find user in db",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"userId": ret.ID,
+	})
+
 }
