@@ -6,7 +6,7 @@ import Navbar from "./header/header";
 import dynamic from 'next/dynamic';
 import MessageArea from "./message/message_section";
 import { ChatSidebar } from "./chats/[chatId]/chats";
-import Cookies from "js-cookie";
+import { destroyCookie, parseCookies } from 'nookies';
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -18,15 +18,19 @@ export default function Home() {
   const [socket, setSocket] = useState(null); // WebSocket Verbindung
   const [unreadChats, setUnreadChats] = useState(new Set()); // Set für nicht gelesene Chats
   const [userId, setUserId] = useState(null); // Zustand für die UserId
+  const [username, setUsername] = useState('')
   const [chats, setChats] = useState([]);
 
 
-  const cookies = require('js-cookie')
-  const authCookie = cookies.get('Authorization')
 
-  if(authCookie == undefined) {
-    //router.push("/")
-  }
+  useEffect(() => {
+    const cookies = parseCookies();
+    const authCookie = cookies["Authorization"];
+    //destroyCookie(null, "Authorization")
+    if(userId == null) {
+      router.push('/')
+    }
+  }, [userId, router])
 
   const getUserId = async () => {
     try {
@@ -46,6 +50,7 @@ export default function Home() {
       const data = await response.json();
       //console.log(data.sub)
       setUserId(data.sub); // UserId speichern
+      setUsername(data.username)
     } catch (err) {
       setError('Fehler beim Abrufen der UserId');
       console.error(err);
@@ -98,9 +103,10 @@ export default function Home() {
 
     // WebSocket Nachrichten empfangen
     ws.onmessage = (event) => {
+      console.log("Received Message: " + JSON.stringify(event.data))
       const message = JSON.parse(event.data);
       const { chatId, senderId, Test } = message;
-      console.log(JSON.stringify(message))
+      //console.log(JSON.stringify(message))
       chats.forEach((chat) => {
         if(chatId == chat.ID) {
           if(chat.Messages.length === 0) {
@@ -133,6 +139,7 @@ export default function Home() {
       senderId: userId,
       text,
     };
+    console.log("Socket send message: " + JSON.stringify(message))
 
     socket.send(JSON.stringify(message));
     // Direkt in der Nachrichtenliste anzeigen
@@ -143,7 +150,7 @@ export default function Home() {
     <div>
       
       <div className="flex h-screen overflow-hidden">
-        <ChatSidebar chats={chats} setChats={setChats} setchat={handleSelectChat}/>
+        <ChatSidebar username={username} chats={chats} setChats={setChats} setchat={handleSelectChat}/>
         {selectedChat ? (
             <MessageArea chat={selectedChat} userId={userId} messages={messages} onSendMessage={handleSendMessage}/>
           ) : (

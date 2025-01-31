@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"messages/messages/initializers"
 	"messages/messages/models"
+	"messages/messages/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -44,10 +45,29 @@ func GetUserChats(c *gin.Context) {
 
 func LoadUserChats(c *gin.Context) {
 	var chat []models.Chat
-	//userid := c.MustGet("userId").(uint)
+	var part []models.ChatParticipants
+	userid := c.MustGet("userId").(uint)
+	res := initializers.DB.Where("user_id=?", userid).Find(&part)
+	if res.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": res.Error.Error(),
+		})
+		return
+	}
+
+	var chatIds []uint
+	for _, partis := range part {
+		chatIds = append(chatIds, partis.ChatID)
+	}
+
 	result := initializers.DB.Model(&models.Chat{}).Preload("Participants").Preload("Messages", func(db *gorm.DB) *gorm.DB {
-		return db.Limit(1).Order("messages.id DESC")
-	}).Find(&chat)
+		return db.Order("messages.id DESC")
+	}).Find(&chat, "chats.id IN ?", chatIds)
+
+	//result := initializers.DB.Joins("Participants").Find(&chat)
+
+	//result := initializers.DB.Model(&models.Chat{}).Joins("Participants").Find(&chat)
+
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": result.Error.Error(),
@@ -75,5 +95,32 @@ func GetChatPreview(c *gin.Context) {
 	c.Bind(&chats)
 	c.JSON(http.StatusOK, gin.H{
 		"chats": chats,
+	})
+}
+
+func CreateChat(c *gin.Context) {
+	userid := c.MustGet("userId").(uint)
+	type Body struct {
+		Name     string
+		Username string
+	}
+	body := Body{}
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Request body does not match",
+		})
+		return
+	}
+
+	chat, derr := utils.CreateNewChat(userid, body.Name, body.Username)
+	if derr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": derr.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"chat": chat,
 	})
 }

@@ -18,7 +18,7 @@ export default function Chat({ chat }) {
 */
 export default function Chat({chat, setchat}) {
     //var router = useRouter()
-    //console.log(chat)
+    //console.log(chat.Messages[0])
     return (
         <div key={chat.ID} id={chat.ID} onClick={() => setchat(chat)} className="flex items-center mb-4 cursor-pointer hover:bg-gray-100 p-2 rounded-md">
               <div className="w-12 h-12 bg-gray-300 rounded-full mr-3">

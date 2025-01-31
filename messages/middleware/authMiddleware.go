@@ -46,7 +46,8 @@ func Validate() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 		type Token struct {
-			Sub uint `json:"sub"`
+			Sub      uint   `json:"sub"`
+			Username string `json:"Username"`
 		}
 		var token Token
 		url := "http://localhost:8080/validate"
@@ -64,8 +65,9 @@ func Validate() gin.HandlerFunc {
 		if err != nil {
 			c.AbortWithStatus(http.StatusBadRequest)
 		}
-		fmt.Printf("Validation Middleware got UserId:%d", token.Sub)
+		fmt.Printf("Validation Middleware got UserId:%d\n", token.Sub)
 		c.Set("userId", token.Sub)
+		c.Set("username", token.Username)
 		c.Next()
 	}
 }

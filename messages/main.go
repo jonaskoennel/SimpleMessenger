@@ -57,6 +57,7 @@ func main() {
 	r.GET("/messages/:chat_id", controllers.GetAllMessages)
 	r.GET("/chats", controllers.GetUserChats)
 	r.GET("/chats/user", controllers.LoadUserChats)
+	r.POST("/chats/create", controllers.CreateChat)
 	r.GET("/chats/preview", controllers.GetChatPreview)
 
 	log.Fatal(r.Run(*addr))

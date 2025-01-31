@@ -1,6 +1,7 @@
 'use client'
 import { redirect } from 'next/dist/server/api-utils'
 import { FormEvent } from 'react'
+import { useRouter } from 'next/navigation'; 
 import Link from 'next/link'
  
 export default function LoginForm() {
@@ -23,6 +24,7 @@ export default function LoginForm() {
 }
 
 async function handleSubmit(event) {
+    //const router = useRouter();
     event.preventDefault()
  
     const formData = new FormData(event.target)
@@ -37,9 +39,11 @@ async function handleSubmit(event) {
     })
     
     var data = await response.json();
+    console.log(data)
 
-    if (response.ok) {
-      //
+    if (response.ok) {+
+      console.log("Erfolgreich!")
+      //router.push('/');
     } else {
       // Handle errors
     }

@@ -53,6 +53,11 @@ func (h *Hub) Run() {
 				fmt.Println("Error")
 			}
 			participants, err := utils.GetChatParticipants(message.ChatID)
+			messageModel := models.Message{ChatId: message.ChatID, Text: message.Text, SenderId: message.SenderID}
+			err = utils.CreateNewMessage(&messageModel)
+			if err != nil {
+				fmt.Println("Could not store message in db")
+			}
 
 			for _, client := range h.clients {
 				for _, participant := range participants {

@@ -1,6 +1,6 @@
 
 services:
-  auth:
+  auth_db:
     env_file:
         - path: ./.env
           required: true
@@ -19,7 +19,23 @@ services:
       #- ./scripts/:/docker-entrypoint-initdb.d
     networks:
         - default
-  messages:
+  
+  auth:
+    env_file:
+      - path: ./.env
+        required: true
+    container_name: auth
+    restart: always
+    ports: 
+      - "8090:8090"
+    build: 
+      context: ./authentication/
+      dockerfile: ./authentication/Dockerfile 
+    depends_on:
+      - auth_db
+    networks: 
+      - default
+  messages_db:
     env_file:
         - path: ./.env
           required: true

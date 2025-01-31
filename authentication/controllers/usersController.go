@@ -90,8 +90,9 @@ func Login(c *gin.Context) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+		"sub":      user.ID,
+		"username": user.Username,
+		"exp":      time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("AUTH_JWT_SECRET")))
@@ -116,13 +117,14 @@ func Validate(c *gin.Context) {
 
 	fmt.Println(user.(models.User).Email)
 	c.JSON(http.StatusOK, gin.H{
-		"sub": user.(models.User).ID,
+		"sub":      user.(models.User).ID,
+		"username": user.(models.User).Username,
 	})
 }
 
 func GetUserByUsername(c *gin.Context) {
 	var body struct {
-		Username string
+		Username string `json:"Username"`
 	}
 
 	if c.Bind(&body) != nil {
@@ -136,7 +138,7 @@ func GetUserByUsername(c *gin.Context) {
 	var ret struct {
 		ID uint
 	}
-	err := initializers.DB.Model(&models.User{}).Where("username LIKE = ?", body.Username).First(&ret).Error
+	err := initializers.DB.Model(&models.User{}).Where("username = ?", body.Username).First(&ret).Error
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to find user in db",
